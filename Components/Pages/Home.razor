@@ -1,0 +1,24 @@
+﻿@page "/"
+@using RobotProject.Services;
+@using SimpleMqtt;
+@inject MqttMessageProcessingService MqttMessageProcessingService;
+@rendermode InteractiveServer
+
+<PageTitle>Home</PageTitle>
+
+<h1>Hello, world!</h1>
+<button class="btn btn-primary" @onclick="SendMessage">Click me</button>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await MqttMessageProcessingService.PublishMessage("Init Message", "TestTopic");
+        Console.WriteLine("Message sent");
+    }
+
+    private async Task SendMessage()
+    {
+        await MqttMessageProcessingService.PublishMessage("Test Message", "TestTopic");
+        Console.WriteLine("test!!!");
+    }
+}
