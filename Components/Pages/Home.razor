@@ -1,24 +1,54 @@
 ﻿@page "/"
 @using RobotProject.Services;
 @using SimpleMqtt;
-@inject MqttMessageProcessingService MqttMessageProcessingService;
+@inject IUserRepository UserRepository;
+@inject MqttMessageProcessingService MqttService;
 @rendermode InteractiveServer
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>BatteryPercentage: @batteryPercentage.ToString("P2")</h1>
 <button class="btn btn-primary" @onclick="SendMessage">Click me</button>
 
 @code {
+    double batteryPercentage;
+
+
+    //Handle Received mqtt messages
+    public async Task OnMessageRecieved(object? sender, SimpleMqttMessage args)
+    {
+        await InvokeAsync(() =>
+        {
+            switch (args.Topic)
+            {
+                case "robot/battery":
+                    double lastBatteryPercentage = batteryPercentage;
+                    if (args.Message != null)
+                    {
+                        //Change US formatting to EU formatting
+                        string message = args.Message.Replace(".", ",");
+                        batteryPercentage = Convert.ToDouble(message);
+                    }
+                    //Reload page when battery percentage has changed
+                    if (lastBatteryPercentage != batteryPercentage) StateHasChanged();
+                    break;
+            }
+        });
+    }
+
+    //Initialization
     protected override async Task OnInitializedAsync()
     {
-        await MqttMessageProcessingService.PublishMessage("Init Message", "TestTopic");
+        //Test Mqtt for connection
+        await MqttService.PublishMessage("Init Message", "TestTopic");
         Console.WriteLine("Message sent");
+        //Register new event handler for Mqtt Messages
+        MqttService.OnMessageReceivedPage += async (sender, args) => await OnMessageRecieved(sender, args);
     }
 
     private async Task SendMessage()
     {
-        await MqttMessageProcessingService.PublishMessage("Test Message", "TestTopic");
+        await MqttService.PublishMessage("Test Message", "TestTopic");
         Console.WriteLine("test!!!");
     }
 }

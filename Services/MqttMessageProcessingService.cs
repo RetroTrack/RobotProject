@@ -11,9 +11,18 @@ public class MqttMessageProcessingService : IHostedService
       	_userRepository = userRepository;  
       	_mqttClient = mqttClient;
         
-        _mqttClient.OnMessageReceived += (sender, args) => {
-            Console.WriteLine($"Incoming MQTT message on {args.Topic}:{args.Message}");
-        };
+        _mqttClient.OnMessageReceived += OnMessageReceived;
+    }
+
+    //New Event Handler to link received messages to page
+    public event EventHandler<SimpleMqttMessage>? OnMessageReceivedPage;
+
+    public void OnMessageReceived(object? sender, SimpleMqttMessage args)
+    {        
+        Console.WriteLine($"Incoming MQTT message on {args.Topic}:{args.Message}");
+
+        //Create own callback on page so that it reloads when needed.
+        OnMessageReceivedPage?.Invoke(this, args);
     }
 
     public async Task PublishMessage(string message, string topic) => await _mqttClient.PublishMessage(message, topic);

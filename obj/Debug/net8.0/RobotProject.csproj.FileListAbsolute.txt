@@ -55,6 +55,7 @@ c:\Users\nicky\OneDrive - Avans Hogeschool\Documenten\Visual Studio Code\RobotPr
 c:\Users\nicky\OneDrive - Avans Hogeschool\Documenten\Visual Studio Code\RobotProject\RobotProject\obj\Debug\net8.0\RobotProject.AssemblyInfo.cs
 c:\Users\nicky\OneDrive - Avans Hogeschool\Documenten\Visual Studio Code\RobotProject\RobotProject\obj\Debug\net8.0\RobotProject.csproj.CoreCompileInputs.cache
 c:\Users\nicky\OneDrive - Avans Hogeschool\Documenten\Visual Studio Code\RobotProject\RobotProject\obj\Debug\net8.0\RobotProject.MvcApplicationPartsAssemblyInfo.cache
+c:\Users\nicky\OneDrive - Avans Hogeschool\Documenten\Visual Studio Code\RobotProject\RobotProject\obj\Debug\net8.0\RobotProject.sourcelink.json
 c:\Users\nicky\OneDrive - Avans Hogeschool\Documenten\Visual Studio Code\RobotProject\RobotProject\obj\Debug\net8.0\staticwebassets.build.json
 c:\Users\nicky\OneDrive - Avans Hogeschool\Documenten\Visual Studio Code\RobotProject\RobotProject\obj\Debug\net8.0\staticwebassets.development.json
 c:\Users\nicky\OneDrive - Avans Hogeschool\Documenten\Visual Studio Code\RobotProject\RobotProject\obj\Debug\net8.0\staticwebassets\msbuild.RobotProject.Microsoft.AspNetCore.StaticWebAssets.props
