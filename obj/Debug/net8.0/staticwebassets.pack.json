@@ -21,6 +21,30 @@
       "PackagePath": "staticwebassets\\favicon.png"
     },
     {
+      "Id": "c:\\Users\\nicky\\OneDrive - Avans Hogeschool\\Documenten\\Visual Studio Code\\RobotProject\\RobotProject\\wwwroot\\home.css",
+      "PackagePath": "staticwebassets\\home.css"
+    },
+    {
+      "Id": "c:\\Users\\nicky\\OneDrive - Avans Hogeschool\\Documenten\\Visual Studio Code\\RobotProject\\RobotProject\\wwwroot\\images\\notification\\connection-bad.svg",
+      "PackagePath": "staticwebassets\\images\\notification\\connection-bad.svg"
+    },
+    {
+      "Id": "c:\\Users\\nicky\\OneDrive - Avans Hogeschool\\Documenten\\Visual Studio Code\\RobotProject\\RobotProject\\wwwroot\\images\\notification\\connection-good.svg",
+      "PackagePath": "staticwebassets\\images\\notification\\connection-good.svg"
+    },
+    {
+      "Id": "c:\\Users\\nicky\\OneDrive - Avans Hogeschool\\Documenten\\Visual Studio Code\\RobotProject\\RobotProject\\wwwroot\\images\\notification\\connection-weak.svg",
+      "PackagePath": "staticwebassets\\images\\notification\\connection-weak.svg"
+    },
+    {
+      "Id": "c:\\Users\\nicky\\OneDrive - Avans Hogeschool\\Documenten\\Visual Studio Code\\RobotProject\\RobotProject\\wwwroot\\images\\we-bot-name-icon-2.svg",
+      "PackagePath": "staticwebassets\\images\\we-bot-name-icon-2.svg"
+    },
+    {
+      "Id": "c:\\Users\\nicky\\OneDrive - Avans Hogeschool\\Documenten\\Visual Studio Code\\RobotProject\\RobotProject\\wwwroot\\images\\we-bot-name-icon.svg",
+      "PackagePath": "staticwebassets\\images\\we-bot-name-icon.svg"
+    },
+    {
       "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.RobotProject.Microsoft.AspNetCore.StaticWebAssets.props",
       "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
     },

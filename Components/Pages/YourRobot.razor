@@ -1,0 +1,162 @@
+﻿@page "/"
+@using RobotProject.Services;
+@using RobotProject.Services.Repository;
+@using RobotProject.Services.Models;
+@using SimpleMqtt;
+@inject IRobotRepository RobotRepository;
+@inject MqttMessageProcessingService MqttService;
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject SimpleMqttClient MqttClient;
+@rendermode InteractiveServer
+
+<PageTitle>Your Robot</PageTitle>
+
+<link rel="stylesheet" href="home.css?version=0.1" />
+
+<MudContainer style="top: 20%; position:absolute;">
+    <div class="container-fluid" style="font-weight: 600; font-size: 3.5rem;">
+        Your Robot<img src="/images/notification/connection-good.svg" class="d-inline-block"
+            style="height:1.2em; vertical-align: text-top; ">
+    </div>
+    <br>
+    <div class="d-inline-block mr-3"
+        style="width: 264px; height: 177px; position: relative; filter: drop-shadow(2px 4px 4px #0000002f);">
+        <div
+            style="width: 264px; height: 177px; left: 0px; top: 0px; position: absolute; background: linear-gradient(107deg, #497AED 0%, #06B1F4 100%); border-radius: 25px">
+        </div>
+        <div style="height: 155px; left: 20px; top: 9px; position: absolute">
+            <div
+                style="width: 146px; height: 39px; left: 0px; top: 0px; position: absolute; color: white; font-size: 32px; font-weight: 700; word-wrap: break-word">
+                Status</div>
+            <div
+                style="width: 230px; height: 100px; left: 0px; top: 55px; position: absolute; color: white; font-size: 32px; font-weight: 500; word-wrap: break-word">
+                @_robotStatus</div>
+        </div>
+        <div
+            style="width: 264px;height: 57px;position: absolute;background: linear-gradient(0deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 100%);border-top-left-radius: 25px;border-top-right-radius: 25px">
+        </div>
+    </div>
+    <div class="d-inline-block mx-3"
+        style="width: 264px; height: 177px; position: relative; filter: drop-shadow(2px 4px 4px #0000002f);">
+        <div
+            style="width: 264px; height: 177px; position: absolute; background: linear-gradient(107deg, #EDB649 0%, #F48906 100%); border-radius: 25px">
+        </div>
+        <div style="width: 230px; height: 155px; left: 20px; top: 9px; position: absolute">
+            <div
+                style="width: 146px; height: 39px; position: absolute; color: white; font-size: 32px; font-weight: 700; word-wrap: break-word">
+                Battery</div>
+
+            <div
+                style="width: 230px; height: 100px; top: 55px; left:-20px; position: absolute; color: white; font-size: 32px; font-weight: 500; word-wrap: break-word">
+                <div class="battery-container">
+                    <div class="battery-icon" style="color: #F5F7FA;">
+                        <div class="battery-level"
+                            style="width: @GetBatteryWidth(); background-color: @BatteryLevelColor();">
+                        </div>
+                    </div>
+                    <div class="battery-info">
+                        <span class="battery-percentage">@_batteryPercentage.ToString("P2")</span>
+                        <span class="battery-text">Battery Percentage</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div
+            style="width: 264px;height: 57px;position: absolute;background: linear-gradient(0deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 100%);border-top-left-radius: 25px;border-top-right-radius: 25px">
+        </div>
+    </div>
+
+    <a class="d-block" href="/notification-history"
+        style="width: 556px; height: 177px; position: relative; margin-top: 7px; filter: drop-shadow(2px 4px 4px #0000002f);">
+        <div
+            style="width: inherit; height: 177px; left: 0px; top: 0px; position: absolute; background: white; border-radius: 25px">
+        </div>
+        <div style="width: inherit; height: 155px; left: 20px; top: 9px; position: absolute">
+            <div
+                style="width: inherit; height: inherit; left: -20px; align-content: center; text-align: center; position: absolute; color: white; font-size: 32px; font-weight: 700; word-wrap: break-word">
+            </div>
+        </div>
+    </a>
+
+    <button class="d-block" @onclick="StopRobot"
+        style="width: 556px; height: 177px; position: relative; margin-top: 12px; filter: drop-shadow(2px 4px 4px #0000002f);">
+        <div
+            style="width: inherit; height: 177px; left: 0px; top: 0px; position: absolute; background: linear-gradient(140deg, #fc4129 0%, #ff3131 100%); border-radius: 25px">
+        </div>
+        <div style="width: inherit; height: 155px; left: 20px; top: 9px; position: absolute">
+            <div
+                style="width: inherit; height: inherit; left: -20px; align-content: center; text-align: center; position: absolute; color: white; font-size: 32px; font-weight: 700; word-wrap: break-word">
+                Stop Robot
+            </div>
+        </div>
+    </button>
+</MudContainer>
+
+@code {
+    List<Robot> _robots = [];
+    Robot _selectedRobot = new(0, "null");
+    string _robotStatus = "Idle";
+    int _sensorOffset = 0;
+    double _batteryPercentage = 0;
+    CultureInfo _usFormatting = new CultureInfo("en-US");
+
+    private string BatteryLevelColor()
+    {
+        double hue = ((_batteryPercentage) * 120);
+        return $"hsl({hue.ToString(_usFormatting)}, 100%, 50%)";
+    }
+    private string GetBatteryWidth()
+    {
+        string width = _batteryPercentage.ToString("P2", _usFormatting);
+        return width;
+    }
+    private async Task StopRobot() => await MqttService.PublishMessage(_selectedRobot.Id.ToString(), "robot/stop-robot");
+
+    //Handle Received mqtt messages
+    public void HandleMessage(object? sender, SimpleMqttMessage args)
+    {
+        if (args.Topic == null || args.Message == null) return;
+        if (args.Topic.Equals("robot/status-update"))
+        {
+            string[] mainSplit = args.Message.Split(':');
+            if (mainSplit[0].Equals(_selectedRobot.Id.ToString()))
+            {
+                _robotStatus = mainSplit[1];
+            }
+            
+        }
+        if (args.Topic.Equals("robot/refresh-window") && args.Message.Equals(_selectedRobot.Id.ToString()))
+        {
+            RefreshBots();
+            InvokeAsync(() =>
+            {
+                if (_selectedRobot.Sensors[0 + _sensorOffset].measurements.Count > 0)
+                    _batteryPercentage = ((float)_selectedRobot.Sensors[0 + _sensorOffset].measurements.Last().Value) / 10000;
+                StateHasChanged();
+            });
+        }
+    }
+
+    //Initialization
+    protected override async Task OnInitializedAsync()
+    {
+        Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopRight;
+        MqttClient.OnMessageReceived -= HandleMessage;
+        MqttClient.OnMessageReceived += HandleMessage;
+        RefreshBots();
+        if (_selectedRobot.Sensors[0 + _sensorOffset].measurements.Count > 0)
+            _batteryPercentage = ((float)_selectedRobot.Sensors[0 + _sensorOffset].measurements.Last().Value) / 10000;
+        await Task.CompletedTask;
+    }
+
+    public void RefreshBots()
+    {
+        _robots = RobotRepository.GetAllRobots();
+        if (_robots.Count > 0)
+        {
+            _selectedRobot = _robots[0];
+            _sensorOffset = _selectedRobot.Id * 3;
+        }
+    }
+}

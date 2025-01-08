@@ -1,0 +1,65 @@
+﻿@page "/notification-history"
+@using RobotProject.Services;
+@using RobotProject.Services.Repository;
+@using SimpleMqtt;
+@using RobotProject.Services.Models;
+@inject IRobotRepository RobotRepository;
+@inject MqttMessageProcessingService MqttService;
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject SimpleMqttClient MqttClient;
+@rendermode InteractiveServer
+
+<PageTitle>Notification History</PageTitle>
+
+<MudTable Items="@_selectedRobot.Notifications" Hover="true" SortLabel="Sort By">
+    <HeaderContent>
+        @* <MudTh>
+            <MudTableSortLabel SortBy="new Func<Notification, object>(x=>x.Id)">Id</MudTableSortLabel>
+        </MudTh> *@
+        <MudTh>
+            <MudTableSortLabel Enabled="true" SortBy="new Func<Notification, object>(x=>x.Description)">Description
+            </MudTableSortLabel>
+        </MudTh>
+        <MudTh>
+            <MudTableSortLabel SortBy="new Func<Notification, object>(x=>x.Level)">Level</MudTableSortLabel>
+        </MudTh>
+        <MudTh>
+            <MudTableSortLabel InitialDirection="SortDirection.Descending" SortBy="new Func<Notification, object>(x=>x.Timestamp ?? DateTime.Now)">Time</MudTableSortLabel>
+        </MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        @* <MudTd DataLabel="Id">@context.Id</MudTd> *@
+        <MudTd DataLabel="Description">@context.Description</MudTd>
+        <MudTd DataLabel="Level">@context.Level</MudTd>
+        <MudTd DataLabel="Time">@context.Timestamp</MudTd>
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager PageSizeOptions="new int[] { 10, 25, 50, 100 }" />
+    </PagerContent>
+</MudTable>
+
+@code {
+    List<Robot> _robots = [];
+    Robot _selectedRobot = new Robot(0, "null");
+    public void RefreshBots()
+    {
+        _robots = RobotRepository.GetAllRobots();
+        if (_robots.Count > 0)
+        {
+            _selectedRobot = _robots[0];
+            InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopRight;
+
+        MqttClient.OnMessageReceived += (sender, args) => RefreshBots();
+        await Task.CompletedTask;
+    }
+}

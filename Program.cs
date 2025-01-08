@@ -1,6 +1,9 @@
 using RobotProject.Components;
 using SimpleMqtt;
 using RobotProject.Services;
+using MudBlazor.Services;
+using RobotProject.Services.Repository;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,11 +12,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+builder.Services.AddMudServices();
+
 var configuration = new ConfigurationBuilder().AddUserSecrets<Program>().Build();
 
 var sqlConnectionString = configuration["SQL:ConnectionString"];
-
-builder.Services.AddSingleton<IUserRepository, SqlUserRepository>(o => new SqlUserRepository(sqlConnectionString));
+if(sqlConnectionString == null) Environment.Exit(1);
+builder.Services.AddSingleton<IRobotRepository, SqlRobotRepository>(o => new SqlRobotRepository(sqlConnectionString));
 
 
 var userName = configuration["MQTT:UserName"];
@@ -35,8 +40,8 @@ var simpleMqttClient = new SimpleMqttClient(new()
 builder.Services.AddSingleton(simpleMqttClient); 
 
 // Configure a MQTT Message Processing Service (that runs continuously in the background)
-builder.Services.AddHostedService<MqttMessageProcessingService>();
 builder.Services.AddSingleton<MqttMessageProcessingService>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<MqttMessageProcessingService>());
 
 var app = builder.Build();
 

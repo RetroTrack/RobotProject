@@ -73,3 +73,13 @@ c:\Users\nicky\OneDrive - Avans Hogeschool\Documenten\Visual Studio Code\RobotPr
 c:\Users\nicky\OneDrive - Avans Hogeschool\Documenten\Visual Studio Code\RobotProject\RobotProject\obj\Debug\net8.0\RobotProject.pdb
 c:\Users\nicky\OneDrive - Avans Hogeschool\Documenten\Visual Studio Code\RobotProject\RobotProject\obj\Debug\net8.0\RobotProject.genruntimeconfig.cache
 c:\Users\nicky\OneDrive - Avans Hogeschool\Documenten\Visual Studio Code\RobotProject\RobotProject\obj\Debug\net8.0\ref\RobotProject.dll
+c:\Users\nicky\OneDrive - Avans Hogeschool\Documenten\Visual Studio Code\RobotProject\RobotProject\bin\Debug\net8.0\Microsoft.AspNetCore.Authorization.dll
+c:\Users\nicky\OneDrive - Avans Hogeschool\Documenten\Visual Studio Code\RobotProject\RobotProject\bin\Debug\net8.0\Microsoft.AspNetCore.Components.dll
+c:\Users\nicky\OneDrive - Avans Hogeschool\Documenten\Visual Studio Code\RobotProject\RobotProject\bin\Debug\net8.0\Microsoft.AspNetCore.Components.Forms.dll
+c:\Users\nicky\OneDrive - Avans Hogeschool\Documenten\Visual Studio Code\RobotProject\RobotProject\bin\Debug\net8.0\Microsoft.AspNetCore.Components.Web.dll
+c:\Users\nicky\OneDrive - Avans Hogeschool\Documenten\Visual Studio Code\RobotProject\RobotProject\bin\Debug\net8.0\Microsoft.AspNetCore.Metadata.dll
+c:\Users\nicky\OneDrive - Avans Hogeschool\Documenten\Visual Studio Code\RobotProject\RobotProject\bin\Debug\net8.0\Microsoft.Extensions.Localization.dll
+c:\Users\nicky\OneDrive - Avans Hogeschool\Documenten\Visual Studio Code\RobotProject\RobotProject\bin\Debug\net8.0\Microsoft.Extensions.Localization.Abstractions.dll
+c:\Users\nicky\OneDrive - Avans Hogeschool\Documenten\Visual Studio Code\RobotProject\RobotProject\bin\Debug\net8.0\Microsoft.Extensions.Options.dll
+c:\Users\nicky\OneDrive - Avans Hogeschool\Documenten\Visual Studio Code\RobotProject\RobotProject\bin\Debug\net8.0\Microsoft.JSInterop.dll
+c:\Users\nicky\OneDrive - Avans Hogeschool\Documenten\Visual Studio Code\RobotProject\RobotProject\bin\Debug\net8.0\MudBlazor.dll

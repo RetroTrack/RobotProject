@@ -1,0 +1,12 @@
+﻿@page "/sensor-history"
+@using RobotProject.Services;
+@using RobotProject.Services.Repository;
+@using SimpleMqtt;
+@inject IRobotRepository RobotRepository;
+@inject MqttMessageProcessingService MqttService;
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject SimpleMqttClient mqttClient;
+@rendermode InteractiveServer
+
+<PageTitle>Sensor History</PageTitle>

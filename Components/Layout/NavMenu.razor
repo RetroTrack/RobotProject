@@ -1,6 +1,6 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">MyFirstBlazorApp</a>
+﻿<div class="top-row ps-3 navbar navbar-dark" style="background-color: rgba(255,255,255,0.15);">
+    <div class="container-fluid" style="width: 100%;">
+        <a href="/"><img src="/images/we-bot-name-icon-2.svg" style="height: 2.5rem; position: relative; left: 0%; top: 50%"/></a>
     </div>
 </div>
 
@@ -10,32 +10,25 @@
     <nav class="flex-column">
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Your Robot
             </NavLink>
         </div>
 
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
+            <NavLink class="nav-link" href="notification-history">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Notification History
             </NavLink>
         </div>
 
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="time">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Time
+            <NavLink class="nav-link" href="sensor-history">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Sensor History
             </NavLink>
         </div>
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="project">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Project
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
+            <NavLink class="nav-link" href="medicine-reminders">
+                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Medicine & Reminders
             </NavLink>
         </div>
     </nav>
 </div>
-

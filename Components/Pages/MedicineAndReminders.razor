@@ -1,0 +1,166 @@
+﻿@page "/medicine-reminders"
+@using RobotProject.Services;
+@using RobotProject.Services.Repository;
+@using RobotProject.Services.Models;
+@using SimpleMqtt;
+@inject IRobotRepository RobotRepository;
+@inject MqttMessageProcessingService MqttService;
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject SimpleMqttClient MqttClient;
+@rendermode InteractiveServer
+
+<PageTitle>Medicine & Reminders</PageTitle>
+
+<MudDataGrid T="CombinedTableItem" Items="@_combinedItems" EditMode="DataGridEditMode.Form" Bordered="true" Dense="true"
+    EditTrigger="DataGridEditTrigger.Manual" CommittedItemChanges="@SaveCombinedItem" ReadOnly="false">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Medicines & Reminders</MudText>
+        <MudSpacer />
+        <MudIconButton Icon="@Icons.Material.Filled.AddCircleOutline" @onclick="AddTableItem"></MudIconButton>
+    </ToolBarContent>
+    <Columns>
+        <PropertyColumn Property="x => x.Type" Title="Type" Required="true" Editable="false" />
+        <PropertyColumn Property="x => x.NameOrDescription" Required="true"
+            Title="Medicine name/Reminder description" />
+        <PropertyColumn Property="x => x.Timestamp" Title="Timestamp">
+            <EditTemplate>
+                <MudStack Row="true">
+                    <MudDatePicker Label="Date" Editable="true" @bind-Date="_editDate" />
+                    <MudTimePicker Label="Time" Editable="true" @bind-Time="_editTime" />
+                </MudStack>
+            </EditTemplate>
+        </PropertyColumn>
+
+        <TemplateColumn CellClass="d-flex justify-end">
+            <CellTemplate>
+                <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit"
+                    OnClick="@(() => { context.Actions.StartEditingItemAsync(); EditTimestamp(context.Item.Timestamp); })" />
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+</MudDataGrid>
+
+
+@code {
+    DateTime? _editDate;
+    TimeSpan? _editTime;
+    List<Robot> _robots = [];
+    Robot _selectedRobot = new(0, "null");
+
+    string _robotStatus = "Idle";
+    int _sensorOffset = 0;
+    double _batteryPercentage = 0;
+    CultureInfo _usFormatting = new CultureInfo("en-US");
+    List<CombinedTableItem> _combinedItems = new();
+
+    private void MapDataToCombinedItems()
+    {
+        _combinedItems = _selectedRobot.Medicines
+        .Select(m => new CombinedTableItem
+            {
+                Id = m.Id,
+                Type = "Medicine",
+                NameOrDescription = m.Name,
+                Timestamp = m.Timestamp
+            })
+        .Concat(_selectedRobot.Reminders.Select(r => new CombinedTableItem
+            {
+                Id = r.Id,
+                Type = "Reminder",
+                NameOrDescription = r.Description,
+                Timestamp = r.Timestamp
+            }))
+        .ToList();
+    }
+
+    private async Task SaveCombinedItem(CombinedTableItem item)
+    {
+        if (_editDate == null) _editDate = item.Timestamp.Date;
+        if (_editTime == null) _editTime = item.Timestamp.TimeOfDay;
+        item.Timestamp = _editDate.Value + _editTime.Value;
+        Console.WriteLine("SAVING: " + item.Type);
+        if (item.Type == "Medicine")
+        {
+            var medicine = _selectedRobot.Medicines.First(m => m.Id == item.Id);
+            medicine.Name = item.NameOrDescription;
+            medicine.Timestamp = item.Timestamp;
+        }
+        else if (item.Type == "Reminder")
+        {
+            var reminder = _selectedRobot.Reminders.First(r => r.Id == item.Id);
+            reminder.Description = item.NameOrDescription;
+            reminder.Timestamp = item.Timestamp;
+        }
+        foreach (Reminder reminder in _selectedRobot.Reminders)
+        {
+            Console.WriteLine($"Reminder: [{reminder.Id}], \"{reminder.Description}\", [{reminder.Timestamp}]");
+        }
+        RobotRepository.UpdateRobot(_selectedRobot, "reminder, medicine");
+        await Task.CompletedTask;
+    }
+
+    private Task AddTableItem()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+
+        return DialogService.ShowAsync<AddTableItemDialog>("Add Medicine/Reminder", options);
+    }
+
+    private void EditTimestamp(DateTime timeStamp)
+    {
+        _editDate = timeStamp.Date;
+        _editTime = timeStamp.TimeOfDay;
+    }
+
+    //Handle Received mqtt messages
+    public void HandleMessage(object? sender, SimpleMqttMessage args)
+    {
+        if (args.Topic == null || args.Message == null) return;
+        if (args.Topic.Equals("robot/status-update"))
+        {
+            string[] mainSplit = args.Message.Split(':');
+            if (mainSplit[0].Equals(_selectedRobot.Id.ToString()))
+            {
+                _robotStatus = mainSplit[1];
+            }
+        }
+        if (args.Topic.Equals("robot/refresh-window") && args.Message.Equals(_selectedRobot.Id.ToString()))
+        {
+            RefreshBots();
+            InvokeAsync(() =>
+            {
+                if (_selectedRobot.Sensors[0 + _sensorOffset].measurements.Count > 0)
+                    _batteryPercentage = ((float)_selectedRobot.Sensors[0 + _sensorOffset].measurements.Last().Value) / 10000;
+                StateHasChanged();
+            });
+        }
+    }
+
+    //Initialization
+    protected override async Task OnInitializedAsync()
+    {
+        Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopRight;
+
+        MqttClient.OnMessageReceived -= HandleMessage;
+        MqttClient.OnMessageReceived += HandleMessage;
+
+        RefreshBots();
+
+        if (_selectedRobot.Sensors[0 + _sensorOffset].measurements.Count > 0)
+            _batteryPercentage = ((float)_selectedRobot.Sensors[0 + _sensorOffset].measurements.Last().Value) / 10000;
+        MapDataToCombinedItems();
+
+        await Task.CompletedTask;
+    }
+
+    public void RefreshBots()
+    {
+        _robots = RobotRepository.GetAllRobots();
+        if (_robots.Count > 0)
+        {
+            _selectedRobot = _robots[0];
+            _sensorOffset = _selectedRobot.Id * 3;
+        }
+    }
+}
