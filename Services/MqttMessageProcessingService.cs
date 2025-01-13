@@ -44,6 +44,21 @@ public class MqttMessageProcessingService : IHostedService
         await MqttClient.SubscribeToTopic("#");
     }
 
+    public async Task ReloadSchedule()
+    {
+        List<Reminder> reminders = _robotRepository.GetReminders();
+        
+        foreach (Reminder reminder in reminders)
+        {
+
+            if (DateTime.Now > reminder.Timestamp)
+            {
+                await MqttClient.PublishMessage($"{reminder.RobotId};[{reminder.Type}],[{reminder.Name}],[{reminder.Description}]",
+                "robot/reminder");
+            }
+        }
+    }
+
     public Task StopAsync(CancellationToken cancellationToken)
     {
         MqttClient.Dispose();

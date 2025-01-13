@@ -1,0 +1,112 @@
+@using RobotProject.Services.Models;
+@using RobotProject.Services.Repository;
+@inject IRobotRepository RobotRepository
+@inject IDialogService DialogService
+@rendermode InteractiveServer
+<MudDialog>
+    <TitleContent>
+        Add Reminder
+    </TitleContent>
+    <DialogContent>
+        <MudSelect @bind-Value="_type">
+            <MudSelectItem Value="@("Medicine")">Medicine</MudSelectItem>
+            <MudSelectItem Value="@("Information")">Information</MudSelectItem>
+        </MudSelect>
+        @if (_type != null && _type.Equals("Medicine"))
+        {
+            <MudStack Row="true">
+                <MudAutocomplete Label="Name" @bind-Value="_name" TextChanged="@InputValueChanged" SearchFunc="@Search"
+                    AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary" Required="true" />
+                <MudIconButton Icon="@Icons.Material.Filled.AddCircleOutline"
+                    Style="margin-top: 8px; margin-left: -15px; margin-right: -12px;" @onclick="OpenAddDialog" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                    Style="margin-top: 8px; margin-left: -15px; margin-right: -12px;" @onclick="OpenRemoveDialog" />
+            </MudStack>
+        }
+        else if (_type != null && _type.Equals("Information"))
+        {
+            <MudTextField T="string" Label="Name" Variant="Variant.Text" @bind-Value="_name" Required="true" />
+        }
+        <MudStack Row="true">
+            <MudDatePicker Label="Date" Editable="true" @bind-Date="_date" Required="true" />
+            <MudTimePicker Label="Time" Editable="true" @bind-Time="_time" Required="true" />
+        </MudStack>
+        <MudTextField T="string" Label="Description" Variant="Variant.Text" @bind-Value="_description" Lines="5"
+            MaxLength="1023" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">Add</MudButton>
+    </DialogActions>
+</MudDialog>
+@code {
+    [CascadingParameter]
+    public required MudDialogInstance MudDialog { get; set; }
+    [Parameter]
+    public required Robot SelectedRobot { get; set; }
+    private string? _type = "Medicine";
+    private DateTime? _date;
+    private TimeSpan? _time;
+    private string? _name;
+    private string? _description;
+
+
+    private void Submit()
+    {
+        if (_type == null || _name == null || _date == null || _time == null) return;
+        DateTime timestamp = _date.Value + _time.Value;
+        int count = SelectedRobot.Reminders.Count;
+        Reminder reminder = new Reminder(count, _type, _name, _description ?? "", timestamp);
+        RobotRepository.InsertReminder(reminder, SelectedRobot.Id);
+        MudDialog.Close(DialogResult.Ok(reminder));
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+
+    private async Task OpenRemoveDialog()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        var parameters = new DialogParameters<RemoveMedicineDialog> { { x => x.SelectedRobot, SelectedRobot } };
+        var reference = await DialogService.ShowAsync<RemoveMedicineDialog>("Remove Medicine", parameters, options);
+        var result = await reference.Result;
+    }
+    private async Task OpenAddDialog()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        var parameters = new DialogParameters<AddMedicineDialog> { { x => x.SelectedRobot, SelectedRobot } };
+        var reference = await DialogService.ShowAsync<AddMedicineDialog>("Add Medicine", parameters, options);
+        var result = await reference.Result;
+        if (result != null)
+        {
+            var data = result.Data;
+            if (data != null)
+            {
+                Medicine medicine = (Medicine)data;
+                if (medicine.Id < 0) medicine.Id = SelectedRobot.Medicines.Count >= 0 ? SelectedRobot.Medicines.Count : 0;
+                SelectedRobot.Medicines.Add(medicine);
+            }
+        }
+        StateHasChanged();
+    }
+
+    private void InputValueChanged()
+    {
+        if (_name == null) return;
+        Medicine? medicine = SelectedRobot.Medicines.First(x => x.Name.Equals(_name));
+        if(medicine == null) return;
+        _description = medicine.Description;
+    }
+
+    private async Task<IEnumerable<string?>> Search(string value, CancellationToken token)
+    {
+        IEnumerable<string> strings = SelectedRobot.Medicines.Select(medicine => medicine.Name).Where(x =>
+        x.Contains(value ?? "", StringComparison.InvariantCultureIgnoreCase));
+        await Task.CompletedTask;
+        if (strings == null) return new string[0];
+        return strings;
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

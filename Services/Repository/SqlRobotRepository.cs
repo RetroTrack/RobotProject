@@ -65,10 +65,10 @@ public class SqlRobotRepository : IRobotRepository
             {
                 using (var command = connection.CreateCommand())
                 {
-                    command.CommandText = $"INSERT INTO [Medicine] (MedicineId, MedicineName, MedicineTimestamp, RobotId) VALUES (@MedicineId, @MedicineName, @MedicineTimestamp, @RobotId)";
+                    command.CommandText = $"INSERT INTO [Medicine] (MedicineId, MedicineName, MedcineDescription, RobotId) VALUES (@MedicineId, @MedicineName, @MedicineDescription, @RobotId)";
                     command.Parameters.AddWithValue("@MedicineId", medicine.Id);
                     command.Parameters.AddWithValue("@MedicineName", medicine.Name);
-                    command.Parameters.AddWithValue("@MedicineTimestamp", medicine.Timestamp);
+                    command.Parameters.AddWithValue("@MedicineDescription", medicine.Description);
                     command.Parameters.AddWithValue("@RobotId", robot.Id);
                     command.ExecuteNonQuery();
                 }
@@ -80,8 +80,10 @@ public class SqlRobotRepository : IRobotRepository
             {
                 using (var command = connection.CreateCommand())
                 {
-                    command.CommandText = $"INSERT INTO [Reminder] (ReminderId, ReminderDescription, ReminderTimestamp, RobotId) VALUES (@ReminderId, @ReminderDescription, @ReminderTimestamp, @RobotId)";
+                    command.CommandText = $"INSERT INTO [Reminder] (ReminderId, ReminderType, ReminderName, ReminderDescription, ReminderTimestamp, RobotId) VALUES (@ReminderId, @ReminderType, @ReminderName, @ReminderDescription, @ReminderTimestamp, @RobotId)";
                     command.Parameters.AddWithValue("@ReminderId", reminder.Id);
+                    command.Parameters.AddWithValue("@ReminderType", reminder.Type);
+                    command.Parameters.AddWithValue("@ReminderName", reminder.Name);
                     command.Parameters.AddWithValue("@ReminderDescription", reminder.Description);
                     command.Parameters.AddWithValue("@ReminderTimestamp", reminder.Timestamp);
                     command.Parameters.AddWithValue("@RobotId", robot.Id);
@@ -160,10 +162,10 @@ public class SqlRobotRepository : IRobotRepository
             {
                 using (var command = connection.CreateCommand())
                 {
-                    command.CommandText = $"UPDATE [Medicine] SET MedicineName = @MedicineName, MedicineTimestamp = @MedicineTimestamp WHERE MedicineId = @MedicineId AND RobotId = @RobotId";
+                    command.CommandText = $"UPDATE [Medicine] SET MedicineName = @MedicineName, MedicineDescription = @MedicineDescription WHERE MedicineId = @MedicineId AND RobotId = @RobotId";
                     command.Parameters.AddWithValue("@MedicineId", medicine.Id);
                     command.Parameters.AddWithValue("@MedicineName", medicine.Name);
-                    command.Parameters.AddWithValue("@MedicineTimestamp", medicine.Timestamp);
+                    command.Parameters.AddWithValue("@MedicineDescription", medicine.Description);
                     command.Parameters.AddWithValue("@RobotId", robot.Id);
                     command.ExecuteNonQuery();
                 }
@@ -175,8 +177,10 @@ public class SqlRobotRepository : IRobotRepository
             {
                 using (var command = connection.CreateCommand())
                 {
-                    command.CommandText = $"UPDATE [Reminder] SET ReminderDescription = @ReminderDescription, ReminderTimestamp = @ReminderTimestamp WHERE ReminderId = @ReminderId AND RobotId = @RobotId";
+                    command.CommandText = $"UPDATE [Reminder] SET ReminderType = @ReminderType, ReminderName = @ReminderName, ReminderDescription = @ReminderDescription, ReminderTimestamp = @ReminderTimestamp WHERE ReminderId = @ReminderId AND RobotId = @RobotId";
                     command.Parameters.AddWithValue("@ReminderId", reminder.Id);
+                    command.Parameters.AddWithValue("@ReminderType", reminder.Type);
+                    command.Parameters.AddWithValue("@ReminderName", reminder.Name);
                     command.Parameters.AddWithValue("@ReminderDescription", reminder.Description);
                     command.Parameters.AddWithValue("@ReminderTimestamp", reminder.Timestamp);
                     command.Parameters.AddWithValue("@RobotId", robot.Id);
@@ -266,7 +270,7 @@ public class SqlRobotRepository : IRobotRepository
                 using var reader = command.ExecuteReader();
                 while (reader.Read())
                 {
-                    robot.Medicines.Add(new Medicine(reader.GetInt32(0), reader.GetString(1), reader.GetDateTime(2)));
+                    robot.Medicines.Add(new Medicine(reader.GetInt32(0), reader.GetString(1), reader.GetString(2)));
                 }
             }
         }
@@ -281,7 +285,7 @@ public class SqlRobotRepository : IRobotRepository
                 using var reader = command.ExecuteReader();
                 while (reader.Read())
                 {
-                    robot.Reminders.Add(new Reminder(reader.GetInt32(0), reader.GetString(1), reader.GetDateTime(2)));
+                    robot.Reminders.Add(new Reminder(reader.GetInt32(0), reader.GetString(1), reader.GetString(2), reader.GetString(3), reader.GetDateTime(4)));
                 }
             }
         }
@@ -351,6 +355,41 @@ public class SqlRobotRepository : IRobotRepository
         connection.Close();
     }
 
+    public void InsertReminder(Reminder reminder, int robotId)
+    {
+        int currentMax = 0;
+        using var connection = new SqlConnection(_connectionString);
+
+        connection.Open();
+        try
+        {
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = $"Select MAX(ReminderId) FROM [Reminder]";
+                using var reader = command.ExecuteReader();
+                while (reader.Read()) currentMax = reader.GetInt32(0);
+            }
+        }
+        catch
+        {
+            currentMax = -1;
+        }
+
+        using (var command = connection.CreateCommand())
+        {
+            command.CommandText = $"INSERT INTO [Reminder] (ReminderId, ReminderType, ReminderName, ReminderDescription, ReminderTimestamp, RobotId) VALUES (@ReminderId, @ReminderType, @ReminderName, @ReminderDescription, @ReminderTimestamp, @RobotId)";
+            command.Parameters.AddWithValue("@ReminderId", currentMax + 1);
+            command.Parameters.AddWithValue("@ReminderType", reminder.Type);
+            command.Parameters.AddWithValue("@ReminderName", reminder.Name);
+            command.Parameters.AddWithValue("@ReminderDescription", reminder.Description);
+            command.Parameters.AddWithValue("@ReminderTimestamp", reminder.Timestamp);
+            command.Parameters.AddWithValue("@RobotId", robotId);
+            command.ExecuteNonQuery();
+        }
+
+        connection.Close();
+    }
+
     public void InsertNotification(string message)
     {
         int currentMax = 0;
@@ -371,7 +410,7 @@ public class SqlRobotRepository : IRobotRepository
             currentMax = -1;
         }
         string[] mainSplit = message.Split(';');
-        var values = mainSplit[1].Split(new[] { "],[" }, StringSplitOptions.None)
+        var values = mainSplit[1].Split(["],["], StringSplitOptions.None)
                 .Select(x => x.Trim('[', ']'))
                 .ToList();
 
@@ -388,5 +427,108 @@ public class SqlRobotRepository : IRobotRepository
         }
 
         connection.Close();
+    }
+
+    public void InsertMedicine(Medicine medicine, int robotId)
+    {
+        int currentMax = 0;
+        using var connection = new SqlConnection(_connectionString);
+
+        connection.Open();
+
+        if (medicine.Id != -1)
+        {
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = $"UPDATE [Medicine] SET MedicineName = @MedicineName, MedicineDescription = @MedicineDescription WHERE MedicineId = @MedicineId AND RobotId = @RobotId";
+                command.Parameters.AddWithValue("@MedicineId", medicine.Id);
+                command.Parameters.AddWithValue("@MedicineName", medicine.Name);
+                command.Parameters.AddWithValue("@MedicineDescription", medicine.Description);
+                command.Parameters.AddWithValue("@RobotId", robotId);
+                command.ExecuteNonQuery();
+            }
+        }
+        else
+        {
+            try
+            {
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandText = $"Select MAX(MedicineId) FROM [Medicine]";
+                    using var reader = command.ExecuteReader();
+                    while (reader.Read()) currentMax = reader.GetInt32(0);
+                }
+            }
+            catch
+            {
+                currentMax = -1;
+            }
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = $"INSERT INTO [Medicine] (MedicineId, MedicineName, MedicineDescription, RobotId) VALUES (@MedicineId, @MedicineName, @MedicineDescription, @RobotId)";
+                command.Parameters.AddWithValue("@MedicineId", currentMax + 1);
+                command.Parameters.AddWithValue("@MedicineName", medicine.Name);
+                command.Parameters.AddWithValue("@MedicineDescription", medicine.Description);
+                command.Parameters.AddWithValue("@RobotId", robotId);
+                command.ExecuteNonQuery();
+            }
+        }
+        connection.Close();
+
+    }
+
+    public void RemoveReminder(Reminder reminder, int robotId)
+    {
+        using var connection = new SqlConnection(_connectionString);
+
+        connection.Open();
+
+        using (var command = connection.CreateCommand())
+        {
+            command.CommandText = $"DELETE FROM [Reminder] WHERE ReminderId = @ReminderId AND RobotId = @RobotId";
+            command.Parameters.AddWithValue("@ReminderId", reminder.Id);
+            command.Parameters.AddWithValue("@RobotId", robotId);
+            command.ExecuteNonQuery();
+        }
+
+        connection.Close();
+    }
+
+    public void RemoveMedicine(Medicine medicine, int robotId)
+    {
+        using var connection = new SqlConnection(_connectionString);
+
+        connection.Open();
+
+        using (var command = connection.CreateCommand())
+        {
+            command.CommandText = $"DELETE FROM [Medicine] WHERE MedicineId = @MedicineId AND RobotId = @RobotId";
+            command.Parameters.AddWithValue("@MedicineId", medicine.Id);
+            command.Parameters.AddWithValue("@RobotId", robotId);
+            command.ExecuteNonQuery();
+        }
+
+        connection.Close();
+    }
+
+    public List<Reminder> GetReminders()
+    {
+        List<Reminder> reminders = [];
+        using var connection = new SqlConnection(_connectionString);
+        connection.Open();
+        using (var command = connection.CreateCommand())
+        {
+            command.CommandText = $"Select * FROM [Reminder]";
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                reminders.Add(new Reminder(reader.GetInt32(0), reader.GetString(1), reader.GetString(2), reader.GetString(3), reader.GetDateTime(4))
+                {
+                    RobotId = reader.GetInt32(5)
+                });
+            }
+        }
+        connection.Close();
+        return reminders;
     }
 }

@@ -1,0 +1,58 @@
+@using RobotProject.Services.Models;
+@using RobotProject.Services.Repository;
+@using RobotProject.Components;
+@inject IRobotRepository RobotRepository
+@inject IDialogService DialogService
+@rendermode InteractiveServer
+<MudDialog>
+    <TitleContent>
+        Add Medicine
+    </TitleContent>
+    <DialogContent>
+        <MudTextField T="string" Label="Name" Variant="Variant.Text" @onchange="Edit" @bind-Value="_name" MaxLength="255"
+            Style="width: 20rem;" Required="true" />
+        <MudTextField T="string" Label="Description" Variant="Variant.Text" @bind-Value="_description" Lines="5"
+            MaxLength="1023" />
+        @if (isAlreadyPresent)
+        {
+            <MudText Typo="Typo.subtitle1" Color=Color.Error>This name is already used!</MudText>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">Add</MudButton>
+    </DialogActions>
+</MudDialog>
+@code {
+    [CascadingParameter]
+    public required MudDialogInstance MudDialog { get; set; }
+    [Parameter]
+    public required Robot SelectedRobot { get; set; }
+    private string? _name;
+    private string? _description;
+    private Medicine? _medicine;
+    private bool isAlreadyPresent;
+    private void Submit()
+    {
+        if (_name == null) return;
+        if (SelectedRobot.Medicines.FindAll(x => x.Name.Equals(_name)).Count > 0)
+        {
+            isAlreadyPresent = true;
+            return;
+        }
+        AddMedicine();
+        MudDialog.Close(DialogResult.Ok(_medicine));
+    }
+    private void Cancel() => MudDialog.Cancel();
+
+    private void Edit(){
+        isAlreadyPresent = false;
+    }
+
+    private void AddMedicine()
+    {
+        if (_name == null) return;
+        _medicine = new Medicine(-1, _name, _description ?? "");
+        RobotRepository.InsertMedicine(_medicine, SelectedRobot.Id);
+    }
+}

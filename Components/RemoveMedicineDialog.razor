@@ -1,0 +1,46 @@
+@using RobotProject.Services.Models;
+@using RobotProject.Services.Repository;
+@using RobotProject.Components;
+@inject IRobotRepository RobotRepository
+@inject IDialogService DialogService
+@rendermode InteractiveServer
+<MudDialog>
+    <TitleContent>
+        
+    </TitleContent>
+    <DialogContent>
+        <MudDataGrid T="Medicine" Items="@SelectedRobot.Medicines" Bordered="true" Dense="true" ReadOnly="false">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Medicines</MudText>
+            </ToolBarContent>
+            <Columns>
+                <PropertyColumn Property="x => x.Name" Required="true" Title="Name" />
+                <PropertyColumn Property="x => x.Description" Required="true" Title="Description" />
+
+                <TemplateColumn CellClass="d-flex justify-end">
+                    <CellTemplate>
+                        <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete"
+                            OnClick="@(() => { DeleteItem(context.Item); })" />
+                    </CellTemplate>
+                </TemplateColumn>
+            </Columns>
+        </MudDataGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color=Color.Primary OnClick="Close">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+@code {
+    [CascadingParameter]
+    public required MudDialogInstance MudDialog { get; set; }
+    [Parameter]
+    public required Robot SelectedRobot { get; set; }
+    private void Close() => MudDialog.Cancel();
+
+    private void DeleteItem(Medicine medicine)
+    {
+        SelectedRobot.Medicines.Remove(medicine);
+        RobotRepository.RemoveMedicine(medicine, SelectedRobot.Id);
+        StateHasChanged();
+    }
+}
